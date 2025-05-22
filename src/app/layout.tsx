@@ -1,12 +1,17 @@
 import "./globals.css";
-import '@mantine/core/styles.css';
-import 'mantine-datatable/styles.css';
+import "@mantine/core/styles.css";
+import "mantine-datatable/styles.css";
 
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import {
+  ColorSchemeScript,
+  MantineProvider,
+  mantineHtmlProps,
+} from "@mantine/core";
+import Provider from "@/store/provider";
 
 export const metadata = {
-  title: 'My Mantine app',
-  description: 'I have followed setup instructions carefully',
+  title: "My Mantine app",
+  description: "I have followed setup instructions carefully",
 };
 
 export default function RootLayout({
@@ -20,7 +25,9 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <Provider>
+          <MantineProvider>{children}</MantineProvider>
+        </Provider>
       </body>
     </html>
   );
