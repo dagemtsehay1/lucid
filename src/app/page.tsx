@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function Home() {
   return (
-    <div>
+    <div className="container mx-auto mt-10">
       <DataTable
         withTableBorder
         withColumnBorders
