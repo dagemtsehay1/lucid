@@ -8,15 +8,10 @@ import {
   Pill,
   Text,
 } from '@mantine/core';
-import { Record } from '@/models/record';
+import { FormulaInputProps } from '@/models/formula-input';
 
 const operators = ['+', '-', '*', '/', '^', '(', ')'];
 
-interface FormulaInputProps {
-  suggestions: Record[];
-  value: string[];
-  setValue: (val: string[]) => void;
-}
 
 export default function FormulaInput({
   suggestions,
@@ -32,10 +27,11 @@ export default function FormulaInput({
 
   const addToken = (token: string) => {
     if (!token.trim()) return;
-    const endsWithSpace = token.endsWith(' ');
 
+    const endsWithSpace = token.endsWith(' ');
     const trimmed = token.trim();
-    const exactSuggestionMatch = suggestions.some((s) => s.name === token);
+
+    const exactSuggestion = suggestions.find((s) => s.name === token);
     const suggestionStartsWithToken = suggestions.some((s) =>
       s.name.startsWith(token)
     );
@@ -43,12 +39,30 @@ export default function FormulaInput({
     const isOperator = operators.includes(trimmed);
     const isNumber = isNaturalNumber(trimmed);
 
-    if (exactSuggestionMatch || isOperator || isNumber) {
-      setValue([...value, token]);
+    if (exactSuggestion) {
+      setValue([
+        ...value,
+        {
+          value: exactSuggestion.name,
+          type: 'suggestion',
+          metadata: exactSuggestion,
+        },
+      ]);
+      setSearch('');
+      setError(null);
+      combobox.closeDropdown();
+    } else if (isOperator) {
+      setValue([...value, { value: trimmed, type: 'operator' }]);
+      setSearch('');
+      setError(null);
+      combobox.closeDropdown();
+    } else if (isNumber) {
+      setValue([...value, { value: parseInt(trimmed), type: 'number' }]);
       setSearch('');
       setError(null);
       combobox.closeDropdown();
     } else if (endsWithSpace && suggestionStartsWithToken) {
+      // let user continue typing
       setError(null);
     } else {
       setError('Invalid value');
@@ -61,7 +75,7 @@ export default function FormulaInput({
       event.preventDefault();
       addToken(search);
     } else if (event.key === 'Backspace' && search === '') {
-      setValue([...value.slice(0, -1)]);
+      setValue(value.slice(0, -1));
     }
   };
 
@@ -73,7 +87,9 @@ export default function FormulaInput({
     <Combobox
       store={combobox}
       onOptionSubmit={(val) => addToken(val)}
-      // error={!!error}
+      classNames={{
+        header: 'p-0 border-none shadow-none',
+      }}
     >
       <Combobox.Target>
         <InputBase
@@ -92,7 +108,11 @@ export default function FormulaInput({
           }}
         >
           {value.map((token, index) => (
-            <Pill key={index}>{token}</Pill>
+            <Pill key={index}>
+              {token.type === 'suggestion'
+                ? token.metadata.name
+                : token.value}
+            </Pill>
           ))}
           <input
             ref={inputRef}
