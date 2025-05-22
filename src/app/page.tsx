@@ -1,25 +1,28 @@
-'use client';
-import { fetchRecords } from '@/store/api/api';
-import { useRecordStore } from '@/store/store';
-import { ActionIcon, Alert, Box, Button, Loader } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { DataTable } from 'mantine-datatable';
-import { useEffect, useState } from 'react';
-import { IconEdit, IconInfoCircle } from '@tabler/icons-react';
-import FormulaInput from '@/components/formula-input';
+"use client";
+import { fetchRecords } from "@/store/api/api";
+import { useRecordStore } from "@/store/store";
+import {
+  ActionIcon,
+  Alert,
+  Box,
+  Button,
+  Loader,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
+import { DataTable } from "mantine-datatable";
+import { useEffect, useState } from "react";
+import { IconEdit, IconInfoCircle } from "@tabler/icons-react";
+import FormulaInput from "@/components/formula-input";
 export default function Home() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['records'],
+    queryKey: ["records"],
     queryFn: fetchRecords,
   });
 
-  const {
-    records,
-    setRecords,
-    formulas,
-    addFormula,
-    updateFormula,
-  } = useRecordStore();
+  const { records, setRecords, formulas, addFormula, updateFormula } =
+    useRecordStore();
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
@@ -59,12 +62,12 @@ export default function Home() {
         horizontalSpacing="xs"
         verticalSpacing="xs"
         columns={[
-          { accessor: 'name' },
-          { accessor: 'category' },
-          { accessor: 'value' },
+          { accessor: "name" },
+          { accessor: "category" },
+          { accessor: "value" },
           {
-            accessor: 'formula',
-            title: 'Formula',
+            accessor: "formula",
+            title: "Formula",
             render: (row) =>
               editingRowId === row.id ? (
                 <FormulaInput
@@ -73,18 +76,35 @@ export default function Home() {
                   setValue={(tokens) => updateFormula(row.id, tokens)}
                 />
               ) : (
-                row.formula.map((t) =>
-                  t.type === 'suggestion' ? t.metadata.name : t.value
-                ).join(' ')
+                <UnstyledButton onDoubleClick={() => setEditingRowId(row.id)}>
+                  {row.formula.length === 0 ? (
+                    <Text color="gray" size="sm">
+                      ƒ Enter Formula
+                    </Text>
+                  ) : (
+                    row.formula
+                      .map((t) =>
+                        t.type === "suggestion" ? t.metadata.name : t.value
+                      )
+                      .join(" ")
+                  )}
+                </UnstyledButton>
               ),
           },
           {
-            accessor:"action",
-            title:"",
+            accessor: "action",
+            title: "",
             render: (row) => (
-              <ActionIcon onClick={() => setEditingRowId(row.id)} variant="subtle" color="grey"><IconEdit/></ActionIcon>
-            )
-          }
+              <ActionIcon
+                onClick={() => setEditingRowId(row.id)}
+                variant="subtle"
+                color="grey"
+                size="sm"
+              >
+                <IconEdit />
+              </ActionIcon>
+            ),
+          },
         ]}
         records={formulas}
       />

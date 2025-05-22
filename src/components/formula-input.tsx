@@ -87,11 +87,9 @@ export default function FormulaInput({
     <Combobox
       store={combobox}
       onOptionSubmit={(val) => addToken(val)}
-      classNames={{
-        header: 'p-0 border-none shadow-none',
-      }}
     >
-      <Combobox.Target>
+      <Combobox.Target 
+      >
         <InputBase
           component="div"
           onClick={() => {
@@ -130,7 +128,7 @@ export default function FormulaInput({
               outline: 'none',
               fontSize: '14px',
             }}
-            placeholder="Type a formula and press Enter or Space"
+            placeholder={value.length === 0 ? "Type a formula and press Enter or Space" : ""}
           />
         </InputBase>
       </Combobox.Target>
