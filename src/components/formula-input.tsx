@@ -12,12 +12,12 @@ import { FormulaInputProps } from '@/models/formula-input';
 
 const operators = ['+', '-', '*', '/', '^', '(', ')'];
 
-
 export default function FormulaInput({
   suggestions,
   value,
   setValue,
-}: FormulaInputProps) {
+  onInactive, // <-- added onInactive prop
+}: FormulaInputProps & { onInactive?: () => void }) {
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
   const combobox = useCombobox();
@@ -88,8 +88,7 @@ export default function FormulaInput({
       store={combobox}
       onOptionSubmit={(val) => addToken(val)}
     >
-      <Combobox.Target 
-      >
+      <Combobox.Target>
         <InputBase
           component="div"
           onClick={() => {
@@ -121,6 +120,11 @@ export default function FormulaInput({
               combobox.openDropdown();
             }}
             onKeyDown={handleKeyDown}
+            onBlur={() => {
+              if (typeof onInactive === 'function') {
+                onInactive();
+              }
+            }}
             style={{
               flex: 1,
               minWidth: '120px',

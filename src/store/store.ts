@@ -1,14 +1,8 @@
 import { create } from 'zustand';
-import { Token } from '@/models/formula-input';
+import { FormulaRow, Token } from '@/models/formula-input';
 import { Record } from '@/models/record';
 
-type FormulaRow = {
-  id: string;
-  name: string;
-  category: string;
-  value: string;
-  formula: Token[];
-};
+
 
 type State = {
   records: Record[];
@@ -16,7 +10,7 @@ type State = {
 
   formulas: FormulaRow[];
   addFormula: () => void;
-  updateFormula: (id: string, tokens: Token[]) => void;
+  updateFormula: (id: string, tokens: Token[], hasError: boolean, value: string) => void;
 };
 
 export const useRecordStore = create<State>((set, get) => ({
@@ -27,7 +21,6 @@ export const useRecordStore = create<State>((set, get) => ({
   addFormula: () => {
     const { formulas } = get();
 
-    // Generate unique name like "# new variable", "# new variable 1", etc.
     const baseName = '# new variable';
     let name = baseName;
     let counter = 1;
@@ -36,7 +29,6 @@ export const useRecordStore = create<State>((set, get) => ({
       name = `${baseName} ${counter++}`;
     }
 
-    // Generate unique category like "category", "category 1", etc.
     const baseCategory = 'category';
     let category = baseCategory;
     counter = 1;
@@ -51,15 +43,16 @@ export const useRecordStore = create<State>((set, get) => ({
       category,
       value: '0',
       formula: [],
+      hasError: false
     };
 
     set({ formulas: [...formulas, newFormula] });
   },
 
-  updateFormula: (id, tokens) =>
+  updateFormula: (id, tokens, hasError, value) =>
     set((state) => ({
       formulas: state.formulas.map((f) =>
-        f.id === id ? { ...f, formula: tokens } : f
+        f.id === id ? { ...f, formula: tokens,hasError:hasError,value:value } : f
       ),
     })),
 }));

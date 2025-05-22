@@ -1,23 +1,28 @@
-"use client";
-import { fetchRecords } from "@/store/api/api";
-import { useRecordStore } from "@/store/store";
+'use client';
+import { fetchRecords } from '@/store/api/api';
+import { useRecordStore } from '@/store/store';
 import {
   ActionIcon,
   Alert,
+  Badge,
   Box,
   Button,
   Loader,
   Text,
+  Tooltip,
   UnstyledButton,
-} from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
-import { DataTable } from "mantine-datatable";
-import { useEffect, useState } from "react";
-import { IconEdit, IconInfoCircle } from "@tabler/icons-react";
-import FormulaInput from "@/components/formula-input";
+} from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import { DataTable } from 'mantine-datatable';
+import { ReactNode, useEffect, useState } from 'react';
+import { IconAlertTriangle, IconEdit, IconInfoCircle } from '@tabler/icons-react';
+import FormulaInput from '@/components/formula-input';
+import { Token } from '@/models/formula-input';
+import { evaluateFormula } from '@/utils/utils';
+
 export default function Home() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["records"],
+    queryKey: ['records'],
     queryFn: fetchRecords,
   });
 
@@ -62,18 +67,26 @@ export default function Home() {
         horizontalSpacing="xs"
         verticalSpacing="xs"
         columns={[
-          { accessor: "name" },
-          { accessor: "category" },
-          { accessor: "value" },
+          { accessor: 'hasError',title:"",render: (row) => row.hasError ?     <Tooltip label="Your Formula has error" className='cursor-pointer'>
+<IconAlertTriangle color="red" size="14" /></Tooltip> : ''},
+          { accessor: 'name' },
+          { accessor: 'category' },
+          { accessor: 'value' },
           {
-            accessor: "formula",
-            title: "Formula",
+            accessor: 'formula',
+            title: 'Formula',
             render: (row) =>
               editingRowId === row.id ? (
                 <FormulaInput
                   suggestions={records}
                   value={row.formula}
-                  setValue={(tokens) => updateFormula(row.id, tokens)}
+                  setValue={(tokens) => updateFormula(row.id, tokens,row.hasError, row.value)}
+                  onInactive={() => {
+                    const { hasError, value } = evaluateFormula(row.formula);
+                    console.log({hasError, value});
+                    updateFormula(row.id, row.formula,hasError, value.toString());
+                    setEditingRowId(null); 
+                  }}
                 />
               ) : (
                 <UnstyledButton onDoubleClick={() => setEditingRowId(row.id)}>
@@ -82,18 +95,14 @@ export default function Home() {
                       ƒ Enter Formula
                     </Text>
                   ) : (
-                    row.formula
-                      .map((t) =>
-                        t.type === "suggestion" ? t.metadata.name : t.value
-                      )
-                      .join(" ")
+                    <FormatedFormula formula={row.formula}/>
                   )}
                 </UnstyledButton>
               ),
           },
           {
-            accessor: "action",
-            title: "",
+            accessor: 'action',
+            title: '',
             render: (row) => (
               <ActionIcon
                 onClick={() => setEditingRowId(row.id)}
@@ -120,3 +129,14 @@ export default function Home() {
     </Box>
   );
 }
+
+
+const FormatedFormula = ({ formula }:{formula:Token[]}) => {
+  const components:ReactNode[] = [];
+formula.map((t:Token) =>t.type === 'suggestion' ?components.push( <Badge variant="outline" color="gray">{t.metadata.name}</Badge>) :components.push(<Text span size='sm'>{t.value}</Text>))
+  return (
+    <div>
+   { components.map((c) => c)}
+    </div>
+  );
+};
